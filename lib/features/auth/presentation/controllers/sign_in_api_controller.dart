@@ -1,0 +1,42 @@
+
+
+import 'package:ecommerce_app/app/urls.dart';
+import 'package:ecommerce_app/core/models/network_response.dart';
+import 'package:ecommerce_app/core/services/network_caller.dart';
+import 'package:ecommerce_app/features/auth/data/models/sign_in_request_model.dart';
+import 'package:ecommerce_app/features/auth/data/models/verify_otp_request_model.dart';
+import 'package:ecommerce_app/features/shared/data/models/user_model.dart';
+import 'package:get/get.dart';
+
+class SignInApiController extends GetxController{
+  bool _signInProgress = false;
+  bool get signInProgress => _signInProgress;
+
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
+
+  UserModel? _userModel;
+  UserModel? get userModel => _userModel;
+
+  String? _accessToken;
+  String? get accessToken => _accessToken;
+
+  Future<bool> signIn(SignInRequestModel model) async{
+    bool isSuccess = false;
+    _signInProgress = true;
+    update(['signin']);
+    final NetworkResponse response = await Get.find<NetworkCaller>().postRequest(url:Urls.signInpUrl, body:model.toJson());
+    if(response.isSuccess){
+      _errorMessage = null;
+      _userModel = UserModel.fromJson(response.body!['data']['user']);
+      _accessToken = response.body!['data']['token'];
+      isSuccess = true;
+    }else{
+      _errorMessage = response.body?['msg'] ?? response.errorMessage;
+    }
+    _signInProgress = false;
+    update(['signin']);
+    return isSuccess;
+  }
+}
+
